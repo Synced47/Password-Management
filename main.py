@@ -49,7 +49,7 @@ def init_vault(path: str = "vault.json"):
     time_cost = TIME_COST
     memory_cost = MEMORY_COST
     parallelism = PARALLELISM
-    key = derive_key(password=password, salt=salt)
+    key = derive_key(password, salt, time_cost, memory_cost, parallelism)
 
     nonce = secrets.token_bytes(12)
     aesgcm = AESGCM(key=key)
@@ -132,27 +132,32 @@ def print_entries(entries: list):
         print(f"[{i}] {entry['site']}")
 
 def run_session(entries: list, password: str, salt: bytes, kdf_params: dict, path: str = "vault.json"):
-    while True:
-        print()
-        print_entries(entries)
-        print()
-        command = input("Command (number to view, 'a' add, 'd' delete, 'q' quit): ").strip()
+    try:
+        while True:
+            print()
+            print_entries(entries)
+            print()
+            command = input("Command (number to view, 'a' add, 'd' delete, 'q' quit): ").strip()
 
-        if command == "q":
-            print("Goodbye.")
-            break
-        elif command == "a":
-            add_entry(entries, password, salt, kdf_params)
-        elif command == "d":
-            delete_entry(entries, password, salt, kdf_params)
-        elif command.isdigit():
-            index = int(command) - 1
-            if 0 <= index < len(entries):
-                reveal_entry(entries[index])
+            if command == "q":
+                pyperclip.copy("")
+                print("Goodbye.")
+                break
+            elif command == "a":
+                add_entry(entries, password, salt, kdf_params)
+            elif command == "d":
+                delete_entry(entries, password, salt, kdf_params)
+            elif command.isdigit():
+                index = int(command) - 1
+                if 0 <= index < len(entries):
+                    reveal_entry(entries[index])
+                else:
+                    print("Invalid number.")
             else:
-                print("Invalid number.")
-        else:
-            print("Invalid command")
+                print("Invalid command")
+    except KeyboardInterrupt:
+        pyperclip.copy("")
+        print("\nInterrupted. Goodbye.")
 
 def reveal_entry(entry: dict):
     print()
